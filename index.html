@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Action 🎬 - Gerenciador</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Scripts Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+  
+  <!-- Script Principal -->
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- Tela de Login em Tons Pastéis -->
+  <section id="login-section" class="login-container is-hidden">
+    <div class="login-card" id="login-card">
+      <header class="login-header">
+        <span class="login-icon">🎬</span>
+        <h1 class="login-title">Movie Action</h1>
+        <p class="login-subtitle">Faça login para gerenciar sua maratona de cinema</p>
+      </header>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-user">E-mail Cadastrado</label>
+          <input type="email" id="login-user" required placeholder="seu@email.com" autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="login-pass">Senha de Acesso</label>
+          <input type="password" id="login-pass" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <p id="login-feedback" class="login-feedback"></p>
+
+        <button type="submit" class="btn-primary-action btn-submit-login">Acessar Maratona ✨</button>
+      </form>
+    </div>
+
+    <footer class="app-footer">
+      <div class="footer-divider"></div>
+      <p class="footer-text">
+        <span>🎬 Movie Action</span> • Todos os direitos reservados.
+      </p>
+      <p class="footer-subtext">Sua maratona de filmes organizada com carinho ✨</p>
+    </footer>
+  </section>
+
+  <!-- Aplicação Principal -->
+  <div id="app-wrapper" class="app-wrapper is-hidden">
+    <header class="app-header">
+      <div class="header-top-bar">
+        <button type="button" class="btn-primary-action" id="btn-open-add-modal">Novo Filme ➕</button>
+        <button type="button" class="btn-logout" id="btn-logout">Sair 🚪</button>
+      </div>
+      <h1 class="main-title">MOVIE ACTION</h1>
+      <p class="subtitle">Acompanhe e organize os filmes da sua maratona</p>
+    </header>
+
+    <section class="progress-section">
+      <div class="progress-labels">
+        <span>Progresso Geral</span>
+        <span id="progress-text">0 / 0 assistidos (0%)</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-bar"></div>
+      </div>
+    </section>
+
+    <section class="search-section">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Busque por filme ou semana (ex: Ação, Semana 1)..."
+          autocomplete="off"
+        >
+        <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar busca">✕</button>
+      </div>
+    </section>
+
+    <main id="weeks-container" class="weeks-container"></main>
+
+    <div class="load-more-container" id="load-more-wrapper">
+      <button class="btn-load-more" id="btn-load-more" type="button">
+        <span>Exibir Próxima Semana</span> 🍿
+      </button>
+    </div>
+
+    <footer class="app-footer">
+      <div class="footer-divider"></div>
+      <p class="footer-text">
+        <span>🎬 Movie Action</span> • Todos os direitos reservados.
+      </p>
+      <p class="footer-subtext">Sua maratona de filmes organizada com carinho ✨</p>
+    </footer>
+  </div>
+
+  <!-- Modal de Criação / Edição (CRUD) -->
+  <div class="modal-overlay" id="movie-form-modal">
+    <div class="modal-content form-modal-content">
+      <h2 class="modal-title" id="form-modal-title">Novo Filme</h2>
+      <form id="movie-form">
+        <input type="hidden" id="movie-id">
+        
+        <div class="form-group">
+          <label for="movie-title-input">Título do Filme</label>
+          <input type="text" id="movie-title-input" required placeholder="Ex: Mad Max: Estrada da Fúria">
+        </div>
+
+        <div class="form-group">
+          <label for="movie-cover-input">Link da Capa (URL)</label>
+          <input type="url" id="movie-cover-input" placeholder="https://exemplo.com/poster.jpg">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movie-week-input">Semana</label>
+            <select id="movie-week-input" required>
+              <option value="1">Semana 01</option>
+              <option value="2">Semana 02</option>
+              <option value="3">Semana 03</option>
+              <option value="4">Semana 04</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="movie-day-input">Dia / Exibição</label>
+            <input type="text" id="movie-day-input" required placeholder="Ex: 10/10 (Sáb)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="movie-genre-input">Gênero / Categoria</label>
+          <input type="text" id="movie-genre-input" required placeholder="Ex: Ação / Aventura">
+        </div>
+
+        <div class="form-group">
+          <div class="label-with-counter">
+            <label for="movie-synopsis-input">Sinopse Curta</label>
+            <span id="synopsis-counter" class="char-counter">0 / 160</span>
+          </div>
+          <textarea 
+            id="movie-synopsis-input" 
+            rows="3" 
+            maxlength="160" 
+            required 
+            placeholder="Resumo objetivo do filme (máx. 160 caracteres)..."
+          ></textarea>
+        </div>
+
+        <div class="form-buttons">
+          <button type="button" class="btn-secondary" id="btn-cancel-form">Cancelar</button>
+          <button type="submit" class="btn-primary-action">Salvar Filme</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div class="modal-overlay" id="delete-confirm-modal">
+    <div class="modal-content delete-modal-content">
+      <span class="modal-icon">🗑️</span>
+      <h2 class="modal-title delete-title">Excluir Filme?</h2>
+      <p class="modal-desc" id="delete-modal-text">
+        Tem certeza que deseja remover este filme da sua maratona?
+      </p>
+      <div class="delete-modal-actions">
+        <button type="button" class="btn-secondary" id="btn-cancel-delete">Cancelar</button>
+        <button type="button" class="btn-danger-action" id="btn-confirm-delete">Sim, Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Parabéns -->
+  <div class="modal-overlay" id="victory-modal">
+    <div class="modal-content">
+      <span class="modal-icon">🏆🍿🎉</span>
+      <h2 class="modal-title">MARATONA COMPLETA!</h2>
+      <p class="modal-desc">
+        Incrível! Todos os filmes da lista foram assistidos com sucesso.
+      </p>
+      <button class="modal-btn" id="btn-close-modal" type="button">Fechar e Comemorar</button>
+    </div>
+  </div>
+
+</body>
+</html>
