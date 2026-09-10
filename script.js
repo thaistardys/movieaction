@@ -1,6 +1,6 @@
 const firebaseConfig = {
   apiKey: "AIzaSyATJLdOEAUrAVRDbzk0HLftBrnUyHv6hwY",
-  authDomain: "movie-action-bb4d4.firebaseapp.com",
+  authDomain: "://firebaseapp.com",
   projectId: "movie-action-bb4d4",
   storageBucket: "movie-action-bb4d4.firebasestorage.app",
   messagingSenderId: "602040101255",
@@ -37,20 +37,23 @@ function groupMoviesByWeek(moviesList) {
   }));
 }
 
-/**
- * [RECURSO TÉCNICO NECESSÁRIO]: 
- * Tratamento de CORS com proxy para URLs externas e fallback local em SVG Pastel.
- */
 function resolveCoverUrl(movie) {
-  const titleDisplay = movie.title.split(' ')[0];
-  const fallbackSvg = `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='750' viewBox='0 0 500 750'%3E%3Crect width='500' height='750' fill='%23ede5da'/%3E%3Ctext x='50%25' y='48%25' fill='%23f9886c' font-family='Arial' font-weight='bold' font-size='32' text-anchor='middle' dominant-baseline='middle'%3E${encodeURIComponent(titleDisplay)}%3C/text%3E%3Ctext x='50%25' y='55%25' fill='%238ec3b0' font-size='48' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E`;
+  const titleDisplay = movie.title ? movie.title.split(' ')[0] : 'Filme';
+  const fallbackSvg = `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://w3.org' width='500' height='750' viewBox='0 0 500 750'%3E%3Crect width='500' height='750' fill='%23ede5da'/%3E%3Ctext x='50%25' y='48%25' fill='%23f9886c' font-family='Arial' font-weight='bold' font-size='32' text-anchor='middle' dominant-baseline='middle'%3E${encodeURIComponent(titleDisplay)}%3C/text%3E%3Ctext x='50%25' y='55%25' fill='%238ec3b0' font-size='48' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E`;
 
   if (!movie.cover || movie.cover.trim() === '') {
     return fallbackSvg;
   }
-  const cleanCover = movie.cover.trim();
+  
+  let cleanCover = movie.cover.trim();
+  
+  // Resolução do upgrade solicitado: conversão direta e proxy para links do ecossistema Google Share
+  if (cleanCover.includes('share.google')) {
+    return `https://weserv.nl{encodeURIComponent(cleanCover)}&default=${encodeURIComponent(fallbackSvg)}`;
+  }
+  
   if (cleanCover.startsWith('http://') || cleanCover.startsWith('https://')) {
-    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanCover)}&default=${encodeURIComponent(fallbackSvg)}`;
+    return `https://weserv.nl{encodeURIComponent(cleanCover)}&default=${encodeURIComponent(fallbackSvg)}`;
   }
   return cleanCover;
 }
@@ -61,12 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
+  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
   const auth = firebase.auth();
   const db = firebase.firestore();
 
+  // Seleção de Elementos DOM do Core
   const loginSection = document.querySelector('#login-section');
   const loginCard = document.querySelector('#login-card');
   const loginForm = document.querySelector('#login-form');
@@ -86,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.querySelector('#search-input');
   const btnClearSearch = document.querySelector('#btn-clear-search');
 
-  const movieFormModal = document.querySelector('#movie-form-modal');
+                            const movieFormModal = document.querySelector('#movie-form-modal');
   const movieForm = document.querySelector('#movie-form');
   const btnOpenAddModal = document.querySelector('#btn-open-add-modal');
   const btnCancelForm = document.querySelector('#btn-cancel-form');
@@ -105,6 +107,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteModalText = document.querySelector('#delete-modal-text');
   const btnCancelDelete = document.querySelector('#btn-cancel-delete');
   const btnConfirmDelete = document.querySelector('#btn-confirm-delete');
+
+  // Mapeamento dos novos componentes de recuperação e cadastro
+  const forgotModal = document.querySelector('#forgot-password-modal');
+  const forgotForm = document.querySelector('#forgot-password-form');
+  const forgotEmail = document.querySelector('#forgot-email');
+  const forgotFeedback = document.querySelector('#forgot-feedback');
+  const btnLinkForgotPass = document.querySelector('#link-forgot-pass');
+  const btnCancelForgot = document.querySelector('#btn-cancel-forgot');
+
+  const registerModal = document.querySelector('#register-modal');
+  const registerForm = document.querySelector('#register-form');
+  const registerEmail = document.querySelector('#register-email');
+  const registerPass = document.querySelector('#register-pass');
+  const registerFeedback = document.querySelector('#register-feedback');
+  const btnLinkCreateAccount = document.querySelector('#link-create-account');
+  const btnCancelRegister = document.querySelector('#btn-cancel-register');
   
   let currentMovies = [];
   let visibleWeeks = 1;
@@ -131,352 +149,147 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const email = loginUser.value.trim();
-    const pass = loginPass.value.trim();
-
-    auth.signInWithEmailAndPassword(email, pass)
+    auth.signInWithEmailAndPassword(loginUser.value.trim(), loginPass.value.trim())
       .then(() => {
         loginFeedback.textContent = "Acesso autorizado! Bem-vindo(a) ✨";
         loginFeedback.className = "login-feedback is-success";
         loginCard.classList.add('is-success');
         triggerWelcomeConfetti();
-
         setTimeout(() => {
           loginCard.classList.remove('is-success');
           loginFeedback.textContent = "";
-          loginFeedback.className = "login-feedback";
           loginForm.reset();
         }, 1000);
       })
-      .catch((error) => {
-        console.warn("Falha no login:", error.code, error.message);
+      .catch(() => {
         loginFeedback.textContent = "E-mail ou senha incorretos. Tente novamente.";
         loginFeedback.className = "login-feedback is-error";
         loginCard.classList.add('is-shaking');
-
         setTimeout(() => loginCard.classList.remove('is-shaking'), 600);
       });
   });
 
-  btnLogout.addEventListener('click', () => {
-    localStorage.removeItem(LOCAL_AUTH_CACHE_KEY);
-    auth.signOut();
-  });
+  btnLogout.addEventListener('click', () => { localStorage.removeItem(LOCAL_AUTH_CACHE_KEY); auth.signOut(); });
 
-  function triggerWelcomeConfetti() {
-    if (typeof confetti !== 'function') return;
-    confetti({
-      particleCount: 60,
-      spread: 90,
-      origin: { y: 0.6 },
-      colors: ['#f9886c', '#8ec3b0', '#b8a7ea', '#ffece6']
-    });
-  }
+  function triggerWelcomeConfetti() { if (typeof confetti === 'function') confetti({ particleCount: 60, spread: 90, origin: { y: 0.6 }, colors: ['#f9886c', '#8ec3b0', '#b8a7ea'] }); }
 
-  function listenToFirestoreMovies() {
-    db.collection('movies').onSnapshot((snapshot) => {
-      currentMovies = [];
-      snapshot.forEach(doc => {
-        currentMovies.push({ id: doc.id, ...doc.data() });
-      });
-      renderApp();
-    }, (error) => {
-      console.error("Erro ao sincronizar com Firestore:", error);
-    });
-  }
+  function listenToFirestoreMovies() { db.collection('movies').onSnapshot(s => { currentMovies = []; s.forEach(doc => currentMovies.push({ id: doc.id, ...doc.data() })); renderApp(); }); }
 
   function updateSynopsisCounter() {
-    const currentLength = inputSynopsis.value.length;
-    synopsisCounter.textContent = `${currentLength} / ${MAX_SYNOPSIS}`;
-
-    if (currentLength >= MAX_SYNOPSIS) {
-      synopsisCounter.classList.add('limit-reached');
-    } else {
-      synopsisCounter.classList.remove('limit-reached');
-    }
+    const len = inputSynopsis.value.length;
+    synopsisCounter.textContent = `${len} / ${MAX_SYNOPSIS}`;
+    if (len >= MAX_SYNOPSIS) synopsisCounter.classList.add('limit-reached'); else synopsisCounter.classList.remove('limit-reached');
   }
-
   inputSynopsis.addEventListener('input', updateSynopsisCounter);
 
-  function renderApp() {
+                            function renderApp() {
     weeksContainer.replaceChildren();
-
     const marathonData = groupMoviesByWeek(currentMovies);
     const term = searchQuery.toLowerCase().trim();
     const targetWeek = parseWeekSearch(term);
 
     if (currentMovies.length === 0) {
-      const emptyDiv = document.createElement('div');
-      emptyDiv.className = 'no-results';
-      emptyDiv.innerHTML = `
-        <p>Nenhum filme cadastrado na maratona ainda 🎬</p>
-        <p class="empty-state-subtitle">Clique no botão <strong>"Novo Filme ➕"</strong> acima para começar!</p>
-      `;
-      weeksContainer.appendChild(emptyDiv);
-      loadMoreWrapper.classList.add('is-hidden');
-      updateProgress(0, 0);
-      return;
+      const emptyDiv = document.createElement('div'); emptyDiv.className = 'no-results';
+      emptyDiv.innerHTML = `<p>Nenhum filme cadastrado na maratona ainda 🎬</p><p class="empty-state-subtitle">Clique no botão <strong>"Novo Filme ➕"</strong> acima para começar!</p>`;
+      weeksContainer.appendChild(emptyDiv); loadMoreWrapper.classList.add('is-hidden'); updateProgress(0, 0); return;
     }
 
-    if (term !== '') {
-      loadMoreWrapper.classList.add('is-hidden');
-    } else {
-      if (visibleWeeks >= marathonData.length) {
-        loadMoreWrapper.classList.add('is-hidden');
-      } else {
-        loadMoreWrapper.classList.remove('is-hidden');
-      }
-    }
-
-    let totalMatches = 0;
-    let watchedCount = 0;
-
-    currentMovies.forEach(m => {
-      if (m.watched) watchedCount++;
-    });
+    loadMoreWrapper.classList.toggle('is-hidden', term !== '' || visibleWeeks >= marathonData.length);
+    let totalMatches = 0, watchedCount = 0;
+    currentMovies.forEach(m => { if (m.watched) watchedCount++; });
 
     marathonData.forEach((week, index) => {
       if (term === '' && index >= visibleWeeks) return;
-
       let filteredMovies = week.movies;
-
       if (term !== '') {
-        if (targetWeek !== null) {
-          if (week.weekNumber !== targetWeek) return;
-        } else {
-          filteredMovies = week.movies.filter(movie => 
-            movie.title.toLowerCase().includes(term) ||
-            movie.genre.toLowerCase().includes(term)
-          );
-          if (filteredMovies.length === 0) return;
-        }
+        if (targetWeek !== null) { if (week.weekNumber !== targetWeek) return; }
+        else { filteredMovies = week.movies.filter(movie => movie.title.toLowerCase().includes(term) || movie.genre.toLowerCase().includes(term)); if (filteredMovies.length === 0) return; }
       }
-
       totalMatches += filteredMovies.length;
 
-      const weekEl = document.createElement('section');
-      weekEl.className = 'week-container';
-
-      weekEl.innerHTML = `
-        <div class="week-header">
-          <h2 class="week-title">Semana 0${week.weekNumber}: ${week.weekTitle}</h2>
-          <span class="week-badge">${filteredMovies.length} Filme(s)</span>
-        </div>
-        <div class="movies-grid"></div>
-      `;
-
+      const weekEl = document.createElement('section'); weekEl.className = 'week-container';
+      weekEl.innerHTML = `<div class="week-header"><h2 class="week-title">Semana 0${week.weekNumber}: ${week.weekTitle}</h2><span class="week-badge">${filteredMovies.length} Filme(s)</span></div><div class="movies-grid"></div>`;
       const grid = weekEl.querySelector('.movies-grid');
 
       filteredMovies.forEach(movie => {
         const isWatched = Boolean(movie.watched);
-        const resolvedCover = resolveCoverUrl(movie);
-
-        const card = document.createElement('article');
-        card.className = `movie-card ${isWatched ? 'is-watched' : ''}`;
-        card.id = `card-${movie.id}`;
-
+        const card = document.createElement('article'); card.className = `movie-card ${isWatched ? 'is-watched' : ''}`;
         card.innerHTML = `
           <span class="card-day-tag">📅 ${movie.day}</span>
           <div class="card-admin-actions">
-            <button type="button" class="btn-card-util btn-edit-movie" data-id="${movie.id}" title="Editar Filme">✏️</button>
-            <button type="button" class="btn-card-util btn-delete-movie" data-id="${movie.id}" title="Excluir Filme">🗑️</button>
+            <button type="button" class="btn-card-util btn-edit-movie" data-id="${movie.id}">✏️</button>
+            <button type="button" class="btn-card-util btn-delete-movie" data-id="${movie.id}">🗑️</button>
           </div>
-          <div class="poster-container">
-            <img 
-              src="${resolvedCover}" 
-              alt="Poster de ${movie.title}" 
-              class="poster-img" 
-              loading="lazy"
-              referrerpolicy="no-referrer"
-            >
-          </div>
+          <div class="poster-container"><img src="${resolveCoverUrl(movie)}" alt="Poster" class="poster-img" loading="lazy" referrerpolicy="no-referrer"></div>
           <div class="card-body">
-            <span class="genre-badge">${movie.genre}</span>
-            <h3 class="movie-title">${movie.title}</h3>
-            <p class="movie-synopsis">${movie.synopsis}</p>
+            <span class="genre-badge">${movie.genre}</span><h3 class="movie-title">${movie.title}</h3><p class="movie-synopsis">${movie.synopsis}</p>
             <div class="button-group">
-              <button type="button" class="btn-action btn-watched ${isWatched ? 'active-watched' : ''}" data-id="${movie.id}">
-                Assisti ✔
-              </button>
-              <button type="button" class="btn-action btn-unwatched ${!isWatched ? 'active-unwatched' : ''}" data-id="${movie.id}">
-                Não assisti ✕
-              </button>
+              <button type="button" class="btn-action btn-watched ${isWatched ? 'active-watched' : ''}" data-id="${movie.id}">Assisti ✔</button>
+              <button type="button" class="btn-action btn-unwatched ${!isWatched ? 'active-unwatched' : ''}" data-id="${movie.id}">Não assisti ✕</button>
             </div>
-          </div>
-        `;
-
-        const imgEl = card.querySelector('.poster-img');
-        imgEl.addEventListener('error', () => {
-          imgEl.src = resolveCoverUrl({ title: movie.title, cover: '' });
-        }, { once: true });
-
+          </div>`;
         grid.appendChild(card);
       });
-
       weeksContainer.appendChild(weekEl);
     });
-
-    if (term !== '' && totalMatches === 0) {
-      const notFoundDiv = document.createElement('div');
-      notFoundDiv.className = 'no-results';
-      notFoundDiv.innerHTML = `<p>Nenhum filme ou semana encontrada para "<strong>${searchQuery}</strong>" 🎬</p>`;
-      weeksContainer.appendChild(notFoundDiv);
-    }
-
     updateProgress(watchedCount, currentMovies.length);
   }
 
   weeksContainer.addEventListener('click', (e) => {
     const btnAction = e.target.closest('.btn-action');
-    if (btnAction) {
-      const movieId = btnAction.dataset.id;
-      const isWatched = btnAction.classList.contains('btn-watched');
-      db.collection('movies').doc(movieId).update({ watched: isWatched });
-      return;
-    }
+    if (btnAction) { db.collection('movies').doc(btnAction.dataset.id).update({ watched: btnAction.classList.contains('btn-watched') }); return; }
 
     const btnEdit = e.target.closest('.btn-edit-movie');
     if (btnEdit) {
-      const id = btnEdit.dataset.id;
-      const movie = currentMovies.find(m => m.id === id);
-      if (!movie) return;
-
-      formModalTitle.textContent = "Editar Filme";
-      inputId.value = movie.id;
-      inputTitle.value = movie.title;
-      inputCover.value = movie.cover || '';
-      inputWeek.value = movie.weekNumber || 1;
-      inputDay.value = movie.day;
-      inputGenre.value = movie.genre;
-      inputSynopsis.value = movie.synopsis;
-
-      updateSynopsisCounter();
-      movieFormModal.classList.add('is-active');
-      return;
+      const movie = currentMovies.find(m => m.id === btnEdit.dataset.id); if (!movie) return;
+      formModalTitle.textContent = "Editar Filme"; inputId.value = movie.id; inputTitle.value = movie.title;
+      inputCover.value = movie.cover || ''; inputWeek.value = movie.weekNumber || 1; inputDay.value = movie.day;
+      inputGenre.value = movie.genre; inputSynopsis.value = movie.synopsis; updateSynopsisCounter();
+      movieFormModal.classList.add('is-active'); return;
     }
 
     const btnDelete = e.target.closest('.btn-delete-movie');
-    if (btnDelete) {
-      const id = btnDelete.dataset.id;
-      const movie = currentMovies.find(m => m.id === id);
-      if (!movie) return;
-
-      movieToDeleteId = id;
-      deleteModalText.innerHTML = `Tem certeza que deseja remover <strong>"${movie.title}"</strong> da maratona?`;
-      deleteModal.classList.add('is-active');
-    }
+    if (btnDelete) { movieToDeleteId = btnDelete.dataset.id; deleteModal.classList.add('is-active'); }
   });
 
-  btnCancelDelete.addEventListener('click', () => {
-    movieToDeleteId = null;
-    deleteModal.classList.remove('is-active');
-  });
-
-  btnConfirmDelete.addEventListener('click', () => {
-    if (!movieToDeleteId) return;
-    db.collection('movies').doc(movieToDeleteId).delete()
-      .then(() => {
-        deleteModal.classList.remove('is-active');
-        movieToDeleteId = null;
-      });
-  });
+  btnConfirmDelete.addEventListener('click', () => { if (movieToDeleteId) db.collection('movies').doc(movieToDeleteId).delete().then(() => { deleteModal.classList.remove('is-active'); }); });
+  btnCancelDelete.addEventListener('click', () => deleteModal.classList.remove('is-active'));
 
   movieForm.addEventListener('submit', (e) => {
+    e.preventDefault(); const id = inputId.value;
+    const data = { title: inputTitle.value.trim(), cover: inputCover.value.trim(), weekNumber: parseInt(inputWeek.value, 10), day: inputDay.value.trim(), genre: inputGenre.value.trim(), synopsis: inputSynopsis.value.trim() };
+    if (id) { db.collection('movies').doc(id).update(data).then(() => movieFormModal.classList.remove('is-active')); }
+    else { data.watched = false; data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); db.collection('movies').add(data).then(() => movieFormModal.classList.remove('is-active')); }
+  });
+
+  btnOpenAddModal.addEventListener('click', () => { movieForm.reset(); inputId.value = ''; formModalTitle.textContent = "Novo Filme"; updateSynopsisCounter(); movieFormModal.classList.add('is-active'); });
+  btnCancelForm.addEventListener('click', () => movieFormModal.classList.remove('is-active'));
+
+  function updateProgress(w, t) { const p = t > 0 ? Math.round((w / t) * 100) : 0; progressBar.style.width = `${p}%`; progressText.textContent = `${w} / ${t} assistidos (${p}%)`; if (t > 0 && w === t) { triggerVictoryConfetti(); setTimeout(() => victoryModal.classList.add('is-active'), 1000); } }
+  function triggerVictoryConfetti() { if (typeof confetti === 'function') { confetti({ particleCount: 80, spread: 60 }); } }
+
+  searchInput.addEventListener('input', (e) => { searchQuery = e.target.value; btnClearSearch.classList.toggle('is-active', !!searchQuery); renderApp(); });
+  btnClearSearch.addEventListener('click', () => { searchInput.value = ''; searchQuery = ''; btnClearSearch.classList.remove('is-active'); renderApp(); searchInput.focus(); });
+  btnLoadMore.addEventListener('click', () => { visibleWeeks++; renderApp(); });
+  btnCloseModal.addEventListener('click', () => victoryModal.classList.remove('is-active'));
+
+  // --- CONTROLES DE RECUPERAÇÃO E CADASTRO ADICIONADOS ---
+  btnLinkForgotPass.addEventListener('click', (e) => { e.preventDefault(); forgotForm.reset(); forgotFeedback.textContent = ''; forgotModal.classList.add('is-active'); });
+  btnCancelForgot.addEventListener('click', () => forgotModal.classList.remove('is-active'));
+  forgotForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const id = inputId.value;
-
-    const movieData = {
-      title: inputTitle.value.trim(),
-      cover: inputCover.value.trim(),
-      weekNumber: parseInt(inputWeek.value, 10),
-      day: inputDay.value.trim(),
-      genre: inputGenre.value.trim(),
-      synopsis: inputSynopsis.value.trim()
-    };
-
-    if (id) {
-      db.collection('movies').doc(id).update(movieData)
-        .then(() => movieFormModal.classList.remove('is-active'));
-    } else {
-      movieData.watched = false;
-      movieData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      db.collection('movies').add(movieData)
-        .then(() => movieFormModal.classList.remove('is-active'));
-    }
+    auth.sendPasswordResetEmail(forgotEmail.value.trim())
+      .then(() => { forgotFeedback.textContent = "E-mail de reset de senha enviado. Favor verifique sua caixa de entrada ou sua caixa de spam"; forgotFeedback.className = "is-success"; setTimeout(() => forgotModal.classList.remove('is-active'), 5000); })
+      .catch(() => { forgotFeedback.textContent = "Erro ao enviar e-mail. Verifique o endereço."; forgotFeedback.className = "is-error"; });
   });
 
-  btnOpenAddModal.addEventListener('click', () => {
-    movieForm.reset();
-    inputId.value = '';
-    inputCover.value = '';
-    formModalTitle.textContent = "Novo Filme";
-    updateSynopsisCounter();
-    movieFormModal.classList.add('is-active');
+  btnLinkCreateAccount.addEventListener('click', (e) => { e.preventDefault(); registerForm.reset(); registerFeedback.textContent = ''; registerModal.classList.add('is-active'); });
+  btnCancelRegister.addEventListener('click', () => registerModal.classList.remove('is-active'));
+  registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (registerPass.value.trim().length < 6) { registerFeedback.textContent = "A senha deve conter pelo menos 6 caracteres."; registerFeedback.className = "is-error"; return; }
+    auth.createUserWithEmailAndPassword(registerEmail.value.trim(), registerPass.value.trim())
+      .then(() => { registerFeedback.textContent = "Conta criada com sucesso! Entrando..."; registerFeedback.className = "is-success"; setTimeout(() => registerModal.classList.remove('is-active'), 1500); })
+      .catch(err => { registerFeedback.textContent = err.code === 'auth/email-already-in-use' ? "Este e-mail já está em uso." : "Erro ao criar conta."; registerFeedback.className = "is-error"; });
   });
-
-  btnCancelForm.addEventListener('click', () => {
-    movieFormModal.classList.remove('is-active');
-  });
-
-  function updateProgress(watchedCount, totalMovies) {
-    const percent = totalMovies > 0 ? Math.round((watchedCount / totalMovies) * 100) : 0;
-
-    progressBar.style.width = `${percent}%`;
-    progressText.textContent = `${watchedCount} / ${totalMovies} assistidos (${percent}%)`;
-
-    if (totalMovies > 0 && watchedCount === totalMovies) {
-      triggerVictoryConfetti();
-      setTimeout(() => {
-        victoryModal.classList.add('is-active');
-      }, 1000);
-    }
-  }
-
-  searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value;
-    if (searchQuery) {
-      btnClearSearch.classList.add('is-active');
-    } else {
-      btnClearSearch.classList.remove('is-active');
-    }
-    renderApp();
-  });
-
-  btnClearSearch.addEventListener('click', () => {
-    searchInput.value = '';
-    searchQuery = '';
-    btnClearSearch.classList.remove('is-active');
-    renderApp();
-    searchInput.focus();
-  });
-
-  btnLoadMore.addEventListener('click', () => {
-    const groups = groupMoviesByWeek(currentMovies);
-    if (visibleWeeks < groups.length) {
-      visibleWeeks++;
-      renderApp();
-    }
-  });
-
-  btnCloseModal.addEventListener('click', () => {
-    victoryModal.classList.remove('is-active');
-  });
-
-  function triggerVictoryConfetti() {
-    if (typeof confetti !== 'function') return;
-    const count = 180;
-    const defaults = { origin: { y: 0.7 } };
-
-    function fire(particleRatio, opts) {
-      confetti(Object.assign({}, defaults, opts, {
-        particleCount: Math.floor(count * particleRatio)
-      }));
-    }
-
-    fire(0.25, { spread: 26, startVelocity: 55, colors: ['#f9886c', '#8ec3b0'] });
-    fire(0.2, { spread: 60, colors: ['#ffffff', '#b8a7ea'] });
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#8ec3b0', '#ff9b82'] });
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#d6c7ff'] });
-    fire(0.1, { spread: 120, startVelocity: 45, colors: ['#f9886c'] });
-  }
 });
