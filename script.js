@@ -46,13 +46,7 @@ function resolveCoverUrl(movie) {
   }
   
   let cleanCover = movie.cover.trim();
-  
-  // Resolução do upgrade solicitado: conversão direta e proxy para links do ecossistema Google Share
-  if (cleanCover.includes('share.google')) {
-    return `https://weserv.nl{encodeURIComponent(cleanCover)}&default=${encodeURIComponent(fallbackSvg)}`;
-  }
-  
-  if (cleanCover.startsWith('http://') || cleanCover.startsWith('https://')) {
+  if (cleanCover.includes('share.google') || cleanCover.startsWith('http://') || cleanCover.startsWith('https://')) {
     return `https://weserv.nl{encodeURIComponent(cleanCover)}&default=${encodeURIComponent(fallbackSvg)}`;
   }
   return cleanCover;
@@ -68,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // Seleção de Elementos DOM do Core
+  // Seletores Base do DOM
   const loginSection = document.querySelector('#login-section');
   const loginCard = document.querySelector('#login-card');
   const loginForm = document.querySelector('#login-form');
@@ -108,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCancelDelete = document.querySelector('#btn-cancel-delete');
   const btnConfirmDelete = document.querySelector('#btn-confirm-delete');
 
-  // Mapeamento dos novos componentes de recuperação e cadastro
+  // Seletores dos Modais de Cadastro e Redefinição
   const forgotModal = document.querySelector('#forgot-password-modal');
   const forgotForm = document.querySelector('#forgot-password-form');
   const forgotEmail = document.querySelector('#forgot-email');
@@ -182,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   inputSynopsis.addEventListener('input', updateSynopsisCounter);
 
-                            function renderApp() {
+  function renderApp() {
     weeksContainer.replaceChildren();
     const marathonData = groupMoviesByWeek(currentMovies);
     const term = searchQuery.toLowerCase().trim();
@@ -235,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProgress(watchedCount, currentMovies.length);
   }
 
-  weeksContainer.addEventListener('click', (e) => {
+                            weeksContainer.addEventListener('click', (e) => {
     const btnAction = e.target.closest('.btn-action');
     if (btnAction) { db.collection('movies').doc(btnAction.dataset.id).update({ watched: btnAction.classList.contains('btn-watched') }); return; }
 
@@ -273,23 +267,51 @@ document.addEventListener('DOMContentLoaded', () => {
   btnLoadMore.addEventListener('click', () => { visibleWeeks++; renderApp(); });
   btnCloseModal.addEventListener('click', () => victoryModal.classList.remove('is-active'));
 
-  // --- CONTROLES DE RECUPERAÇÃO E CADASTRO ADICIONADOS ---
-  btnLinkForgotPass.addEventListener('click', (e) => { e.preventDefault(); forgotForm.reset(); forgotFeedback.textContent = ''; forgotModal.classList.add('is-active'); });
-  btnCancelForgot.addEventListener('click', () => forgotModal.classList.remove('is-active'));
-  forgotForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    auth.sendPasswordResetEmail(forgotEmail.value.trim())
-      .then(() => { forgotFeedback.textContent = "E-mail de reset de senha enviado. Favor verifique sua caixa de entrada ou sua caixa de spam"; forgotFeedback.className = "is-success"; setTimeout(() => forgotModal.classList.remove('is-active'), 5000); })
-      .catch(() => { forgotFeedback.textContent = "Erro ao enviar e-mail. Verifique o endereço."; forgotFeedback.className = "is-error"; });
-  });
+  // --- ARQUITETURA DE INICIALIZAÇÃO CORRIGIDA PARA OS BOTÕES ---
+  const initAuthActions = () => {
+    if (!btnLinkForgotPass || !btnLinkCreateAccount) return;
 
-  btnLinkCreateAccount.addEventListener('click', (e) => { e.preventDefault(); registerForm.reset(); registerFeedback.textContent = ''; registerModal.classList.add('is-active'); });
-  btnCancelRegister.addEventListener('click', () => registerModal.classList.remove('is-active'));
-  registerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (registerPass.value.trim().length < 6) { registerFeedback.textContent = "A senha deve conter pelo menos 6 caracteres."; registerFeedback.className = "is-error"; return; }
-    auth.createUserWithEmailAndPassword(registerEmail.value.trim(), registerPass.value.trim())
-      .then(() => { registerFeedback.textContent = "Conta criada com sucesso! Entrando..."; registerFeedback.className = "is-success"; setTimeout(() => registerModal.classList.remove('is-active'), 1500); })
-      .catch(err => { registerFeedback.textContent = err.code === 'auth/email-already-in-use' ? "Este e-mail já está em uso." : "Erro ao criar conta."; registerFeedback.className = "is-error"; });
-  });
+    btnLinkForgotPass.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (forgotForm) forgotForm.reset();
+      if (forgotFeedback) { forgotFeedback.textContent = ''; forgotFeedback.className = ''; }
+      if (forgotModal) forgotModal.classList.add('is-active');
+    });
+
+    if (btnCancelForgot) btnCancelForgot.addEventListener('click', () => { if (forgotModal) forgotModal.classList.remove('is-active'); });
+
+    if (forgotForm) {
+      forgotForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        auth.sendPasswordResetEmail(forgotEmail.value.trim())
+          .then(() => {
+            forgotFeedback.textContent = "E-mail de reset de senha enviado. Favor verifique sua caixa de entrada ou sua caixa de spam";
+            forgotFeedback.className = "is-success";
+            setTimeout(() => { if (forgotModal) forgotModal.classList.remove('is-active'); }, 5000);
+          })
+          .catch(() => { forgotFeedback.textContent = "Erro ao enviar e-mail. Verifique o endereço."; forgotFeedback.className = "is-error"; });
+      });
+    }
+
+    btnLinkCreateAccount.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (registerForm) registerForm.reset();
+      if (registerFeedback) { registerFeedback.textContent = ''; registerFeedback.className = ''; }
+      if (registerModal) registerModal.classList.add('is-active');
+    });
+
+    if (btnCancelRegister) btnCancelRegister.addEventListener('click', () => { if (registerModal) registerModal.classList.remove('is-active'); });
+
+    if (registerForm) {
+      registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (registerPass.value.trim().length < 6) { registerFeedback.textContent = "A senha deve conter pelo menos 6 caracteres."; registerFeedback.className = "is-error"; return; }
+        auth.createUserWithEmailAndPassword(registerEmail.value.trim(), registerPass.value.trim())
+          .then(() => { registerFeedback.textContent = "Conta criada com sucesso! Entrando..."; registerFeedback.className = "is-success"; setTimeout(() => { if (registerModal) registerModal.classList.remove('is-active'); }, 1500); })
+          .catch(err => { registerFeedback.textContent = err.code === 'auth/email-already-in-use' ? "Este e-mail já está em uso." : "Erro ao criar conta."; registerFeedback.className = "is-error"; });
+      });
+    }
+  };
+
+  initAuthActions();
 });
