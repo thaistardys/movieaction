@@ -4,197 +4,226 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maratona Movie Action</title>
+  
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  
   <!-- CSS Link -->
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase App & Services (CDNs Oficiais e Estáveis) -->
+  
+  <!-- Firebase App & Services (CDNs Oficiais, Estáveis e Completas) -->
   <script src="https://gstatic.com"></script>
   <script src="https://gstatic.com"></script>
   <script src="https://gstatic.com"></script>
+  
   <!-- Canvas Confetti Library -->
   <script src="https://cloudflare.com"></script>
 </head>
 <body>
-  <!-- ========================================= TELA DE LOGIN ========================================= -->
-  <section id="login-section" class="login-container">
-    <div></div>
-    <div id="login-card" class="login-card">
-      <div class="login-header">
-        <span class="login-icon">🎬</span>
+
+  <!-- ========================================= 
+  TELA DE LOGIN 
+  ========================================= --> 
+  <section id="login-section" class="login-container"> 
+    <div></div> 
+    <div id="login-card" class="login-card"> 
+      <div class="login-header"> 
+        <span class="login-icon">🎬</span> 
         <h1 class="login-title">Movie Action</h1>
         <p class="login-subtitle">Acesse sua conta para gerenciar a maratona</p>
-      </div>
-      <form id="login-form">
+      </div> 
+ 
+      <form id="login-form"> 
         <div class="form-group" style="text-align: left;">
-          <label for="login-user">E-mail</label>
-          <input type="email" id="login-user" required placeholder="seu@email.com">
-        </div>
+          <label for="login-user">E-mail</label> 
+          <input type="email" id="login-user" required placeholder="seu@email.com"> 
+        </div> 
         <div class="form-group" style="text-align: left; margin-bottom: 0.5rem;">
-          <label for="login-pass">Senha</label>
-          <input type="password" id="login-pass" required placeholder="Sua senha secreta">
-        </div>
-        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0 1.25rem; font-size: 0.85rem;">
-          <a href="#" id="link-forgot-pass" style="color: var(--coral-pastel); text-decoration: none; font-weight: 600;">Esqueci minha senha</a>
-          <a href="#" id="link-create-account" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">Criar conta</a>
-        </div>
-        <p id="login-feedback" class="login-feedback"></p>
+          <label for="login-pass">Senha</label> 
+          <input type="password" id="login-pass" required placeholder="Sua senha secreta"> 
+        </div> 
+        
+        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0 1.25rem; font-size: 0.85rem;"> 
+          <a href="#" id="link-forgot-pass" style="color: var(--coral-pastel); text-decoration: none; font-weight: 600;">Esqueci minha senha</a> 
+          <a href="#" id="link-create-account" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">Criar conta</a> 
+        </div> 
+        
+        <p id="login-feedback" class="login-feedback"></p> 
         <button type="submit" class="btn-primary-action btn-submit-login">Entrar no Sistema</button>
       </form>
     </div>
     <div></div>
   </section>
-
-  <!-- ========================================= CONTEÚDO PRINCIPAL (APP) ========================================= -->
-  <main id="app-wrapper" class="app-wrapper is-hidden">
-    <div class="header-top-bar">
+  <!-- ========================================= 
+  CONTEÚDO PRINCIPAL (APP) 
+  ========================================= --> 
+  <main id="app-wrapper" class="app-wrapper is-hidden"> 
+    <div class="header-top-bar"> 
       <button type="button" id="btn-open-add-modal" class="btn-primary-action">Novo Filme +</button>
       <button type="button" id="btn-logout" class="btn-logout">Sair 👋</button>
-    </div>
-    <header class="app-header">
+    </div> 
+    <header class="app-header"> 
       <h1 class="main-title">Maratona de Ação</h1>
       <p class="subtitle">Acompanhe e gerencie a lista de filmes semanais</p>
-    </header>
-    <!-- Barra de Progresso Fixo -->
+    </header> 
+    
+    <!-- Barra de Progresso Fixo --> 
     <section class="progress-section">
-      <div class="progress-labels">
-        <span>Progresso da Maratona</span>
+      <div class="progress-labels"> 
+        <span>Progresso da Maratona</span> 
         <span id="progress-text">0 / 0 assistidos (0%)</span>
-      </div>
-      <div class="progress-bar-track">
-        <div id="progress-bar" class="progress-bar-fill"></div>
+      </div> 
+      <div class="progress-bar-track"> 
+        <div id="progress-bar" class="progress-bar-fill"></div> 
       </div>
     </section>
-    <!-- Barra de Busca -->
+    
+    <!-- Barra de Busca --> 
     <section class="search-section">
-      <div class="search-input-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Busque por título, gênero ou use 'semana 1'...">
+      <div class="search-input-wrapper"> 
+        <span class="search-icon">🔍</span> 
+        <input type="text" id="search-input" placeholder="Busque por título, gênero ou use 'semana 1'..."> 
         <button type="button" id="btn-clear-search" class="btn-clear-search">✕</button>
-      </div>
+      </div> 
     </section>
-    <!-- Container das Semanas e Grid de Filmes -->
-    <div id="weeks-container"></div>
-    <!-- Botão Carregar Mais Semanas -->
-    <div id="load-more-wrapper" class="load-more-container is-hidden">
+    
+    <!-- Container das Semanas e Grid de Filmes --> 
+    <div id="weeks-container"></div> 
+    
+    <!-- Botão Carregar Mais Semanas --> 
+    <div id="load-more-wrapper" class="load-more-container is-hidden"> 
       <button type="button" id="btn-load-more" class="btn-load-more">Ver Próxima Semana 🗓️</button>
-    </div>
-    <!-- Rodapé -->
-    <footer class="app-footer">
-      <div class="footer-divider"></div>
-      <p class="footer-text">Desenvolvido para os amantes de <span>Ação 💥</span></p>
-      <p class="footer-subtext">Controle de Maratona Pessoal &copy; 2026</p>
-    </footer>
+    </div> 
+    
+    <!-- Rodapé --> 
+    <footer class="app-footer"> 
+      <div class="footer-divider"></div> 
+      <p class="footer-text">Desenvolvido para os amantes de <span>Ação 💥</span></p> 
+      <p class="footer-subtext">Controle de Maratona Pessoal &copy; 2026</p> 
+    </footer> 
   </main>
 
-  <!-- ========================================= MODAIS DO SISTEMA ========================================= -->
-  <!-- Modal: Adicionar/Editar Filme -->
-  <div id="movie-form-modal" class="modal-overlay">
-    <div class="modal-content form-modal-content">
+    <!-- ========================================= 
+  MODAIS DO SISTEMA 
+  ========================================= --> 
+  <!-- Modal: Adicionar/Editar Filme --> 
+  <div id="movie-form-modal" class="modal-overlay"> 
+    <div class="modal-content form-modal-content"> 
       <h3 id="form-modal-title" class="modal-title">Novo Filme</h3>
-      <form id="movie-form">
-        <input type="hidden" id="movie-id">
-        <div class="form-group">
-          <label for="movie-title-input">Título do Filme</label>
-          <input type="text" id="movie-title-input" required placeholder="Ex: Mad Max: Estrada da Fúria">
-        </div>
-        <div class="form-group">
-          <label for="movie-cover-input">Link da Imagem / Capa (Suporta links Google Share)</label>
-          <input type="url" id="movie-cover-input" placeholder="https://exemplo.com ou link do Google">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="movie-week-input">Semana</label>
-            <select id="movie-week-input" required>
+      <form id="movie-form"> 
+        <input type="hidden" id="movie-id"> 
+        
+        <div class="form-group"> 
+          <label for="movie-title-input">Título do Filme</label> 
+          <input type="text" id="movie-title-input" required placeholder="Ex: Mad Max: Estrada da Fúria"> 
+        </div> 
+        <div class="form-group"> 
+          <label for="movie-cover-input">Link da Imagem / Capa (Suporta links Google Share)</label> 
+          <input type="url" id="movie-cover-input" placeholder="https://exemplo.com ou link do Google"> 
+        </div> 
+        <div class="form-row"> 
+          <div class="form-group"> 
+            <label for="movie-week-input">Semana</label> 
+            <select id="movie-week-input" required> 
               <option value="1">Semana 01</option>
               <option value="2">Semana 02</option>
               <option value="3">Semana 03</option>
               <option value="4">Semana 04</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="movie-day-input">Dia da Exibição</label>
-            <input type="text" id="movie-day-input" required placeholder="Ex: Segunda-feira">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="movie-genre-input">Gênero</label>
-          <input type="text" id="movie-genre-input" required placeholder="Ex: Ação, Sci-Fi, Suspense">
-        </div>
-        <div class="form-group">
-          <div class="label-with-counter">
-            <label for="movie-synopsis-input">Sinopse</label>
-            <span id="synopsis-counter" class="char-counter">0 / 160</span>
-          </div>
-          <textarea id="movie-synopsis-input" maxlength="160" required placeholder="Escreva um breve resumo do filme..."></textarea>
-        </div>
+            </select> 
+          </div> 
+          <div class="form-group"> 
+            <label for="movie-day-input">Dia da Exibição</label> 
+            <input type="text" id="movie-day-input" required placeholder="Ex: Segunda-feira"> 
+          </div> 
+        </div> 
+        <div class="form-group"> 
+          <label for="movie-genre-input">Gênero</label> 
+          <input type="text" id="movie-genre-input" required placeholder="Ex: Ação, Sci-Fi, Suspense"> 
+        </div> 
+        <div class="form-group"> 
+          <div class="label-with-counter"> 
+            <label for="movie-synopsis-input">Sinopse</label> 
+            <span id="synopsis-counter" class="char-counter">0 / 160</span> 
+          </div> 
+          <textarea id="movie-synopsis-input" maxlength="160" required placeholder="Escreva um breve resumo do filme..."></textarea> 
+        </div> 
         <div class="form-buttons">
           <button type="button" id="btn-cancel-form" class="btn-secondary">Cancelar</button>
           <button type="submit" class="btn-primary-action" style="box-shadow: none;">Salvar Filme</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        </div> 
+      </form> 
+    </div> 
+  </div> 
 
-  <!-- Modal: Confirmação de Deleção -->
-  <div id="delete-confirm-modal" class="modal-overlay">
-    <div class="modal-content delete-modal-content">
-      <span class="modal-icon">⚠️</span>
+  <!-- Modal: Confirmação de Deleção --> 
+  <div id="delete-confirm-modal" class="modal-overlay"> 
+    <div class="modal-content delete-modal-content"> 
+      <span class="modal-icon">⚠️</span> 
       <h3 class="modal-title delete-title">Excluir Filme</h3>
-      <p id="delete-modal-text" class="modal-desc">Tem certeza que deseja remover este filme da maratona?</p>
+      <p id="delete-modal-text" class="modal-desc">Tem certeza que deseja remover este filme da maratona?</p> 
       <div class="delete-modal-actions">
         <button type="button" id="btn-cancel-delete" class="btn-secondary">Cancelar</button>
         <button type="button" id="btn-confirm-delete" class="btn-danger-action">Excluir permanentemente</button>
-      </div>
-    </div>
-  </div>
+      </div> 
+    </div> 
+  </div> 
 
-  <!-- Modal: Vitória (Maratona Completa) -->
-  <div id="victory-modal" class="modal-overlay">
-    <div class="modal-content">
-      <span class="modal-icon">🏆🎉</span>
-      <h3 class="modal-title" style="color: var(--mint-pastel);">Maratona Concluída!</h3>
-      <p class="modal-desc">Parabéns! Você assistiu a todos os filmes listados na sua maratona de ação! Mantenha a adrenalina alta!</p>
+  <!-- Modal: Vitória (Maratona Completa) --> 
+  <div id="victory-modal" class="modal-overlay"> 
+    <div class="modal-content"> 
+      <span class="modal-icon">🏆🎉</span> 
+      <h3 class="modal-title" style="color: var(--mint-pastel);">Maratona Concluída!</h3> 
+      <p class="modal-desc">Parabéns! Você assistiu a todos os filmes listados na sua maratona de ação! Mantenha a adrenalina alta!</p> 
       <button type="button" id="btn-close-modal" class="modal-btn">Sensacional!</button>
-    </div>
-  </div>
+    </div> 
+  </div> 
 
-  <!-- Modal: Esqueci Minha Senha -->
-  <div id="forgot-password-modal" class="modal-overlay">
-    <div class="modal-content form-modal-content">
-      <span class="modal-icon">🔒</span>
+  <!-- Modal: Esqueci Minha Senha --> 
+  <div id="forgot-password-modal" class="modal-overlay"> 
+    <div class="modal-content form-modal-content"> 
+      <span class="modal-icon">🔒</span> 
       <h3 class="modal-title">Recuperar Senha</h3>
-      <p class="modal-desc" style="margin-bottom: 1.25rem;">Digite seu e-mail para receber um link de redefinição.</p>
-      <form id="forgot-password-form">
-        <div class="form-group">
-          <label for="forgot-email">E-mail cadastrado</label>
-          <input type="email" id="forgot-email" required placeholder="seu@email.com">
-        </div>
+      <p class="modal-desc" style="margin-bottom: 1.25rem;">Digite seu e-mail para receber um link de redefinição.</p> 
+      <form id="forgot-password-form"> 
+        <div class="form-group"> 
+          <label for="forgot-email">E-mail cadastrado</label> 
+          <input type="email" id="forgot-email" required placeholder="seu@email.com"> 
+        </div> 
         <p id="forgot-feedback" style="font-size: 0.85rem; font-weight: 600; min-height: 1.2rem; margin-bottom: 1rem;"></p>
         <div class="form-buttons">
           <button type="button" class="btn-secondary" id="btn-cancel-forgot">Cancelar</button>
           <button type="submit" class="btn-primary-action" style="box-shadow: none;">Enviar Link</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        </div> 
+      </form> 
+    </div> 
+  </div> 
 
-  <!-- Modal: Criar Conta -->
-  <div id="register-modal" class="modal-overlay">
-    <div class="modal-content form-modal-content">
-      <span class="modal-icon">✨</span>
+  <!-- Modal: Criar Conta --> 
+  <div id="register-modal" class="modal-overlay"> 
+    <div class="modal-content form-modal-content"> 
+      <span class="modal-icon">✨</span> 
       <h3 class="modal-title">Criar Nova Conta</h3>
-      <p class="modal-desc" style="margin-bottom: 1.25rem;">Insira as credenciais que deseja usar para o acesso.</p>
-      <form id="register-form">
-        <div class="form-group">
-          <label for="register-email">E-mail</label>
-          <input type="email" id="register-email" required placeholder="seu@email.com">
-        </div>
-        <div class="form-group">
-          <label for="register-pass">Senha</label>
-          <input type="password" id="register-pass" required placeholder="Mínimo 6 caracteres">
-        </div>
+      <p class="modal-desc" style="margin-bottom: 1.25rem;">Insira as credenciais que deseja usar para o acesso.</p> 
+      <form id="register-form"> 
+        <div class="form-group"> 
+          <label for="register-email">E-mail</label> 
+          <input type="email" id="register-email" required placeholder="seu@email.com"> 
+        </div> 
+        <div class="form-group"> 
+          <label for="register-pass">Senha</label> 
+          <input type="password" id="register-pass" required placeholder="Mínimo 6 caracteres"> 
+        </div> 
         <p id="register-feedback" style="font-size: 0.85rem; font-weight: 600; min-height: 1.2rem; margin-bottom: 1rem;"></p>
         <div class="form-buttons">
+          <button type="button" class="btn-secondary" id="btn-cancel-register">Cancelar</button>
+          <button type="submit" class="btn-primary-action" style="box-shadow: none;">Cadastrar</button>
+        </div> 
+      </form> 
+    </div> 
+  </div> 
+
+  <script src="script.js"></script> 
+</body> 
+</html>
